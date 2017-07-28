@@ -7,5 +7,6 @@ namespace npmcache.Entities
     public class CacheSettings
     {
         public string CacheDirectory { get; set; }
+        public string PackageManager { get; set; }
     }
 }

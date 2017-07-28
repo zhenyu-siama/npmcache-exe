@@ -88,10 +88,13 @@ namespace npmcache
                         cacheDirectory.Delete(true);
                     cacheDirectory.Create();
                     //store the file
-                    File.Copy(filePackageJson.FullName, cachedJsonFile.FullName);
+                    
                     CreateLink(cacheDirectory.FullName);
                     Console.WriteLine($"{NodeModules} fold is linked to \"{cacheDirectory.FullName}\"");
-                    NPMInstall();
+                    NPMInstall(cacheSetting.PackageManager);
+
+                    Console.WriteLine($"Copy package.json as package-cached.json");
+                    File.Copy(filePackageJson.FullName, cachedJsonFile.FullName);
                 }
 
 
@@ -101,7 +104,7 @@ namespace npmcache
 
         static CacheSettings CreateCacheSetting(string filename)
         {
-            var cacheSetting = new CacheSettings() { CacheDirectory = AppContext.BaseDirectory };
+            var cacheSetting = new CacheSettings() { CacheDirectory = AppContext.BaseDirectory, PackageManager = "npm install" };
             File.WriteAllText(filename, JsonConvert.SerializeObject(cacheSetting));
             Console.WriteLine($"Cache Setting Created!");
             return cacheSetting;
@@ -127,12 +130,12 @@ namespace npmcache
             action.WaitForExit();
         }
 
-        static void NPMInstall()
+        static void NPMInstall(string packageManager)
         {
-            Console.WriteLine($"Run npm install now:");
+            Console.WriteLine($"Run {packageManager} now:");
             ProcessStartInfo deleteLink = new ProcessStartInfo("cmd.exe")
             {
-                Arguments = $"/c npm install",
+                Arguments = $"/c {packageManager}",
                 UseShellExecute = false,
                 RedirectStandardError = false,
                 RedirectStandardInput = false,
