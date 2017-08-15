@@ -8,5 +8,7 @@ namespace npmcache.Entities
     {
         public string CacheDirectory { get; set; }
         public string PackageManager { get; set; }
+        public int CheckInterval { get; set; }
+        public int Timeout { get; set; }
     }
 }

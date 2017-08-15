@@ -7,6 +7,8 @@ using System.Diagnostics;
 using npmcache.Utils;
 using npmcache.Entities;
 using Newtonsoft.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace npmcache
 {
@@ -37,6 +39,8 @@ namespace npmcache
                 }
             }
 
+            CancellationTokenSource timeout = SetupTimeout(cacheSetting.Timeout);
+
             Console.WriteLine($"NPM Cache Folders are located in @ \"{cacheSetting.CacheDirectory}\"");
 
             FileInfo filePackageJson = new FileInfo($"{Directory.GetCurrentDirectory()}\\package.json");
@@ -65,21 +69,30 @@ namespace npmcache
 
                 if (cacheDirectory.Exists && !reinstall)
                 {
-                    if (cachedJsonFile.Exists)
+                    while (!File.Exists(cachedJsonFile.FullName))
+                    {
+                        //wait until another process is done with the installation
+                        Thread.Sleep(1000);
+                        Console.WriteLine("Wait until previous installation is done...");
+                    }
+
+                    if (File.Exists(cachedJsonFile.FullName))
                     {
                         string cachedJson = File.ReadAllText(cachedJsonFile.FullName);
                         if (cachedJson != packageJson)
                         {
                             Console.WriteLine("package-cached.json is different from package.json. current cache will be deleted");
-                            cacheDirectory.Delete();
-                            cacheDirectory.Create();
+                            cacheDirectory.Delete(true);
+                            RunInstall(cacheSetting, cacheDirectory, filePackageJson, cachedJsonFile);
                         }
-                        CreateLink(cacheDirectory.FullName);
-                        Console.WriteLine($"{NodeModules} fold is linked to \"{cacheDirectory.FullName}\"");
                     }
                     else
                     {
-                        throw new Exception("package-cached.json was not found in this folder. npmcache was unable to check difference.");
+                        Console.WriteLine("package-cached.json was not found in this folder. npmcache was unable to check difference.");
+                        Console.WriteLine("npmcache will reinstall the package");
+                        cacheDirectory.Delete(true);
+
+                        RunInstall(cacheSetting, cacheDirectory, filePackageJson, cachedJsonFile);
                     }
                 }
                 else
@@ -88,23 +101,50 @@ namespace npmcache
                         cacheDirectory.Delete(true);
                     cacheDirectory.Create();
                     //store the file
-                    
-                    CreateLink(cacheDirectory.FullName);
-                    Console.WriteLine($"{NodeModules} fold is linked to \"{cacheDirectory.FullName}\"");
-                    NPMInstall(cacheSetting.PackageManager);
 
-                    Console.WriteLine($"Copy package.json as package-cached.json");
-                    File.Copy(filePackageJson.FullName, cachedJsonFile.FullName);
+                    RunInstall(cacheSetting, cacheDirectory, filePackageJson, cachedJsonFile);
                 }
-
-
             }
             Console.WriteLine("npmcache install completed...");
+
+            //cancel the timeout to shutdown the process
+            timeout.Cancel();
+        }
+
+        static CancellationTokenSource SetupTimeout(int count)
+        {
+            int total = count;
+            CancellationTokenSource source = new CancellationTokenSource();
+            CancellationToken token = source.Token;
+            Task timeout = new Task(() =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    Thread.Sleep(1000);
+                    total -= 1;
+                    if (total <= 0 && !token.IsCancellationRequested)
+                    {
+                        Environment.Exit(1);
+                    }
+                }
+            });
+            timeout.Start();
+            return source;
+        }
+
+        static void RunInstall(CacheSettings cacheSetting, DirectoryInfo cacheDirectory, FileInfo filePackageJson, FileInfo cachedJsonFile)
+        {
+            CreateLink(cacheDirectory.FullName);
+            Console.WriteLine($"{NodeModules} fold is linked to \"{cacheDirectory.FullName}\"");
+            NPMInstall(cacheSetting.PackageManager);
+
+            Console.WriteLine($"Copy package.json as package-cached.json");
+            File.Copy(filePackageJson.FullName, cachedJsonFile.FullName);
         }
 
         static CacheSettings CreateCacheSetting(string filename)
         {
-            var cacheSetting = new CacheSettings() { CacheDirectory = AppContext.BaseDirectory, PackageManager = "npm install" };
+            var cacheSetting = new CacheSettings() { CacheDirectory = AppContext.BaseDirectory, PackageManager = "npm install", CheckInterval = 1, Timeout = 300 };
             File.WriteAllText(filename, JsonConvert.SerializeObject(cacheSetting));
             Console.WriteLine($"Cache Setting Created!");
             return cacheSetting;
