@@ -6,3 +6,4 @@ C:\Users\Jack\documents\visual studio 2017\Projects\npmcache-exe\npmcache-exe\bi
 C:\Users\Jack\documents\visual studio 2017\Projects\npmcache-exe\npmcache-exe\bin\Debug\npmc.pdb
 C:\Users\Jack\documents\visual studio 2017\Projects\npmcache-exe\npmcache-exe\obj\Debug\npmc.exe
 C:\Users\Jack\documents\visual studio 2017\Projects\npmcache-exe\npmcache-exe\obj\Debug\npmc.pdb
+C:\Users\Jack\Documents\Visual Studio 2017\Projects\npmcache-exe\npmcache-exe\obj\Debug\npmcache-exe.csproj.CoreCompileInputs.cache
