@@ -72,7 +72,7 @@ namespace npmcache
                     while (!File.Exists(cachedJsonFile.FullName))
                     {
                         //wait until another process is done with the installation
-                        Thread.Sleep(1000);
+                        Thread.Sleep(1000 * cacheSetting.CheckInterval);
                         Console.WriteLine("Wait until previous installation is done...");
                     }
 
@@ -84,6 +84,11 @@ namespace npmcache
                             Console.WriteLine("package-cached.json is different from package.json. current cache will be deleted");
                             cacheDirectory.Delete(true);
                             RunInstall(cacheSetting, cacheDirectory, filePackageJson, cachedJsonFile);
+                        }
+                        else
+                        {
+                            Console.WriteLine("package-cached.json is the same as package.json. a link will be created");
+                            CreateLink(cacheDirectory.FullName);
                         }
                     }
                     else
