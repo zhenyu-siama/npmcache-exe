@@ -39,6 +39,10 @@ Yes, less than a second! That's the decent time "npm install" deserves.
 
 I guess only the "entry point" files of the @angular/cli, applicationinsights-js, angular2-busy modules really need the hard links. But to acchieve that, the configuration would be super complex. That would not be really worth doing.
 
+However, since we are doing "per module" cache now, it would be great to have a package manager that can cache modules based on the version number, instead of caching the whole node_modules folder.
+
+In addition, hard links and symbolic links are available on linux as well.
+
 ## Summary:
 
 We don't physically copy any files, we only create links, either symbolic or hard. Both the creation of links and deletion are flashing fast now. (You know how much time it takes to delete the node_modules folder. So the benefit you got is not just how fast to "copy" or "install").
