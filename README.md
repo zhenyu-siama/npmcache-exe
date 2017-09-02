@@ -37,7 +37,7 @@ Yes, less than a second! That's the decent time "npm install" deserves.
 
 ## Further optimization?
 
-I guess only the "entry point" files of the @angular/cli, applicationinsights-js, angular2-busy modules really need the hard links. But to acchieve that, the configuration would be super complex. That would not really worth doing.
+I guess only the "entry point" files of the @angular/cli, applicationinsights-js, angular2-busy modules really need the hard links. But to acchieve that, the configuration would be super complex. That would not be really worth doing.
 
 ## Summary:
 
