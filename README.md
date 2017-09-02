@@ -1,5 +1,5 @@
 # npmcache-exe
-npmcache tool
+npmcache tool for Windows NTFS file system.
 
 ## why npm cache?
 
