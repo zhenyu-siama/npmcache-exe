@@ -1,7 +1,7 @@
 # npmcache-exe
 npmcache tool
 
-# why npm cache?
+## why npm cache?
 
 In continuous integration, one principle is to detect any errors as quick as possible.
 
@@ -13,13 +13,13 @@ In most of the CI builds, package.json does not change very often, and the whole
 
 If we can cache the node_module folder for each package.json, that could potentially save us a lot of time in the CI.
 
-# What's the idea? And what's up?
+## What's the idea? And what's up?
 
 Symbolic link is the first idea that came out of my mind. I tried to cache the node_modules folder somewhere in the hard disk and create a symbolic link where the package.json should install modules to. This seems to be a good idea and it is super quick to create a symbolic link (less than 10ms vs the typical 60-120 sec with npm install). However, it works only for editing the code, when we use angular cli tools to serve or build, it fails.
 
 Basically, angular cli tool must be located under the correct physical path so it can find the source codes and other files. When angular cli is in the symbolic link cache folder, it will find itself in the cached folder, not the linked position, and it is unable to find the source files for compilation. This made the story a bit complex.
 
-# The workaround with hard link.
+## The workaround with hard link.
 
 The good news is that Windows does not only support symbolic link, but also hard links. Hard links are only available for files, not folders. As a result, instead of copying all the file, creating real folder and hard links could be a lot faster.
 
@@ -35,18 +35,18 @@ The performance of this hybrid solution: 670 ms!
 
 Yes, less than a second! That's the decent time "npm install" deserves.
 
-# Further optimization?
+## Further optimization?
 
 I guess only the "entry point" files of the @angular/cli, applicationinsights-js, angular2-busy modules really need the hard links. But to acchieve that, the configuration would be super complex. That would not really worth doing.
 
-# Summary:
+## Summary:
 
 We don't physically copy any files, we only create links, either symbolic or hard. Both the creation of links and deletion are flashing fast now. (You know how much time it takes to delete the node_modules folder. So the benefit you got is not just how fast to "copy" or "install").
 
-# Setup
+## Setup
 1. create a folder in your (most likely) C drive, and copy npmc tools into that folder. Add this folder to the PATH of your system environment variables.
 2. your configuration file npmcache.json should look like this:
-```
+```json
 {
   "CacheDirectory": "C:\\Users\\Jack\\Documents\\GitHub\\npmcache-exe\\npmcache-exe\\bin\\Debug\\cache",
   "PackageManager": "npm install", // this can be "yarn"
