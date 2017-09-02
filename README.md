@@ -45,7 +45,7 @@ In addition, hard links and symbolic links are available on linux as well.
 
 ## Summary:
 
-We don't physically copy any files, we only create links, either symbolic or hard. Both the creation of links and deletion are flashing fast now. (You know how much time it takes to delete the node_modules folder. So the benefit you got is not just how fast to "copy" or "install").
+We don't physically copy any files, we only create links, either symbolic or hard. Both the creation of links and deletion are flashing fast now. (You know how much time it takes to delete the node_modules folder. So the benefit you got is not just how fast to "copy" or "install", but also milliseconds-level quick deletion, and longer SSD lifespan...).
 
 ## Setup
 1. create a folder in your (most likely) C drive, and copy npmc tools into that folder. Add this folder to the PATH of your system environment variables.
