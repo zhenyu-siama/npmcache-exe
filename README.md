@@ -48,7 +48,7 @@ We don't physically copy any files, we only create links, either symbolic or har
 2. your configuration file npmcache.json should look like this:
 ```javascript
 {
-  "CacheDirectory": "C:\\Users\\Jack\\Documents\\GitHub\\npmcache-exe\\npmcache-exe\\bin\\Debug\\cache",
+  "CacheDirectory": "C:\\YourNPMCacheFolder",
   "PackageManager": "npm install", // this can be "yarn"
   "CheckInterval": 1, // this tells how frequently the npmc tool should check if there is a previous npmc tool is running "npm install" on the same package. the npmc tool can wait until the previous one is done.
   "Timeout": 600, // the max time you allow npmc tool to wait for previous "npm install".
