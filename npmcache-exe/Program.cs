@@ -73,6 +73,9 @@ namespace npmcache
 
                 var whiteList = args.Where(arg => !arg.StartsWith(@"\")).ToList();
 
+                if (cacheSetting.HardLinkWhiteList != null)
+                    whiteList.AddRange(cacheSetting.HardLinkWhiteList);
+
                 if (cacheDirectory.Exists && !reinstall)
                 {
                     while (!File.Exists(cachedJsonFile.FullName))

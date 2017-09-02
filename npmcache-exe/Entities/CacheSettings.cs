@@ -10,5 +10,6 @@ namespace npmcache.Entities
         public string PackageManager { get; set; }
         public int CheckInterval { get; set; }
         public int Timeout { get; set; }
+        public List<string> HardLinkWhiteList { get; set; }
     }
 }

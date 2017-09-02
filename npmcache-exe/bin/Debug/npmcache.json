@@ -2,5 +2,10 @@
   "CacheDirectory": "C:\\Users\\Jack\\Documents\\GitHub\\npmcache-exe\\npmcache-exe\\bin\\Debug\\cache",
   "PackageManager": "npm install",
   "CheckInterval": 1,
-  "Timeout": 600
+  "Timeout": 600,
+  "HardLinkWhiteList": [
+    "@angular\\cli",
+    "applicationinsights-js",
+    "angular2-busy"
+  ]
 }
