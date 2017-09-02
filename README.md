@@ -46,7 +46,7 @@ We don't physically copy any files, we only create links, either symbolic or har
 ## Setup
 1. create a folder in your (most likely) C drive, and copy npmc tools into that folder. Add this folder to the PATH of your system environment variables.
 2. your configuration file npmcache.json should look like this:
-```json
+```javascript
 {
   "CacheDirectory": "C:\\Users\\Jack\\Documents\\GitHub\\npmcache-exe\\npmcache-exe\\bin\\Debug\\cache",
   "PackageManager": "npm install", // this can be "yarn"
