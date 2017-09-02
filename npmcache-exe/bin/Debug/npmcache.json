@@ -1,1 +1,6 @@
-{"CacheDirectory":"C:\\Users\\Jack\\documents\\visual studio 2017\\Projects\\npmcache-exe\\npmcache-exe\\bin\\Debug\\"}
+{
+  "CacheDirectory": "C:\\Users\\Jack\\Documents\\GitHub\\npmcache-exe\\npmcache-exe\\bin\\Debug\\cache",
+  "PackageManager": "npm install",
+  "CheckInterval": 1,
+  "Timeout": 600
+}

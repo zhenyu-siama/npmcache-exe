@@ -3,7 +3,9 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using npmcache.Utils;
 using npmcache.Entities;
 using Newtonsoft.Json;
@@ -43,7 +45,9 @@ namespace npmcache
 
             Console.WriteLine($"NPM Cache Folders are located in @ \"{cacheSetting.CacheDirectory}\"");
 
-            FileInfo filePackageJson = new FileInfo($"{Directory.GetCurrentDirectory()}\\package.json");
+            DirectoryInfo workingDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
+
+            FileInfo filePackageJson = new FileInfo($"{workingDirectory.FullName}\\package.json");
 
             if (filePackageJson.Exists)
             {
@@ -65,7 +69,9 @@ namespace npmcache
 
                 DeleteLink();
 
-                var reinstall = args != null && args.Length > 0 && args[0].ToLower() == "r";
+                var reinstall = args != null && args.Length > 0 && args[0].ToLower() == @"\r";
+
+                var whiteList = args.Where(arg => !arg.StartsWith(@"\")).ToList();
 
                 if (cacheDirectory.Exists && !reinstall)
                 {
@@ -88,7 +94,7 @@ namespace npmcache
                         else
                         {
                             Console.WriteLine("package-cached.json is the same as package.json. a link will be created");
-                            CreateLink(cacheDirectory.FullName);
+                            CreateLink(workingDirectory, cacheDirectory, whiteList);
                         }
                     }
                     else
@@ -102,12 +108,13 @@ namespace npmcache
                 }
                 else
                 {
-                    if (reinstall)
+                    if (reinstall && Directory.Exists(cacheDirectory.FullName))
                         cacheDirectory.Delete(true);
                     cacheDirectory.Create();
                     //store the file
 
                     RunInstall(cacheSetting, cacheDirectory, filePackageJson, cachedJsonFile);
+                    CreateLink(workingDirectory, cacheDirectory, whiteList);
                 }
             }
             Console.WriteLine("npmcache install completed...");
@@ -139,9 +146,15 @@ namespace npmcache
 
         static void RunInstall(CacheSettings cacheSetting, DirectoryInfo cacheDirectory, FileInfo filePackageJson, FileInfo cachedJsonFile)
         {
-            CreateLink(cacheDirectory.FullName);
+
+            //copy the package.json to the cache directory
+
+            File.Copy(filePackageJson.FullName, cacheDirectory.AppendRelativeFile(filePackageJson.Name).FullName);
+
+            // run npm install here
+
             Console.WriteLine($"{NodeModules} fold is linked to \"{cacheDirectory.FullName}\"");
-            NPMInstall(cacheSetting.PackageManager);
+            NPMInstall(cacheSetting.PackageManager, cacheDirectory);
 
             Console.WriteLine($"Copy package.json as package-cached.json");
             File.Copy(filePackageJson.FullName, cachedJsonFile.FullName);
@@ -161,26 +174,143 @@ namespace npmcache
                 Directory.Delete(NodeModules, true);
         }
 
-        static void CreateLink(string path)
+        /// <summary>
+        /// Create Folders and File Links in the Target Folder
+        /// </summary>
+        /// <param name="current">the current folder under the source folder</param>
+        /// <param name="source">the source root folder</param>
+        /// <param name="target">the target root folder</param>
+        public static void LinkFolderWithFileHardLink(DirectoryInfo current, DirectoryInfo source, DirectoryInfo target, IEnumerable<string> hardlinkWhitelist = null)
         {
-            ProcessStartInfo deleteLink = new ProcessStartInfo("cmd.exe")
+            if(hardlinkWhitelist == null)
             {
-                Arguments = $"/c mklink /J {NodeModules} \"{path}\"",
-                UseShellExecute = false,
-                RedirectStandardError = false,
-                RedirectStandardInput = false,
-                RedirectStandardOutput = false
-            };
-            Process action = Process.Start(deleteLink);
-            action.WaitForExit();
+                //sync files
+
+                foreach (var fi in current.GetFiles())
+                {
+                    var relative = fi.RelativePathTo(source);
+                    if (relative != null)
+                    {
+                        var file = target.AppendRelativeFile(relative);
+                        CreateHardLink(file.FullName, fi.FullName, IntPtr.Zero);
+                    }
+                }
+
+                //sync dirs
+
+                foreach (var di in current.GetDirectories())
+                {
+                    var relative = di.RelativePathTo(source);
+                    if (relative != null)
+                    {
+                        var directory = target.AppendRelativeDirectory(relative);
+                        if (!Directory.Exists(directory.FullName))
+                            Directory.CreateDirectory(directory.FullName);
+                        LinkFolderWithFileHardLink(di, source, target);
+                    }
+                }
+            }
+
+            else
+            {
+                foreach (var fi in current.GetFiles())
+                {
+                    var relative = fi.RelativePathTo(source);
+                    if (relative != null)
+                    {
+                        var file = target.AppendRelativeFile(relative);
+                        CreateHardLink(file.FullName, fi.FullName, IntPtr.Zero);
+                    }
+                }
+
+                //sync dirs
+
+                foreach (var di in current.GetDirectories())
+                {
+                    var relative = di.RelativePathTo(source);
+                    if (relative != null)
+                    {
+                        var directory = target.AppendRelativeDirectory(relative);
+                        if(hardlinkWhitelist.Any(path => path == di.Name))
+                        {
+                            if (!Directory.Exists(directory.FullName))
+                                Directory.CreateDirectory(directory.FullName);
+                            int dirNameLength = di.Name.Length + 1;
+                            LinkFolderWithFileHardLink(di, source, target);
+                        }
+                        else
+                        {
+                            var found = hardlinkWhitelist.Where(path => path == di.Name || path.StartsWith($"{di.Name}\\"));
+                            if (found.Any())
+                            {
+                                if (!Directory.Exists(directory.FullName))
+                                    Directory.CreateDirectory(directory.FullName);
+                                int dirNameLength = di.Name.Length + 1;
+                                LinkFolderWithFileHardLink(di, source, target, found.Select(path => path.Substring(dirNameLength)));
+                            }
+                            else
+                            {
+                                CreateSymbolicLink(directory.FullName, di.FullName, SymbolicLinkTargetIsADirectory);
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+
         }
 
-        static void NPMInstall(string packageManager)
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        public static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, int dwFlags);
+
+        private const int SymbolicLinkTargetIsAFile = 0;
+
+        private const int SymbolicLinkTargetIsADirectory = 1;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="targetDirectory">The directory where node_moduels should be created. It is not the node_modules folder.</param>
+        /// <param name="sourceDirectory">The sourceDirectory where cached node_modules can be found. It is not the cached node_modules folder itself.</param>
+        static void CreateLink(DirectoryInfo targetDirectory, DirectoryInfo sourceDirectory, List<string> whiteList)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            DirectoryInfo target_node_modules = targetDirectory.AppendRelativeDirectory("node_modules");
+
+            if (Directory.Exists(target_node_modules.FullName))
+            {
+                target_node_modules.Delete(true);
+            }
+            Directory.CreateDirectory(target_node_modules.FullName);
+
+            DirectoryInfo source_node_modules = sourceDirectory.AppendRelativeDirectory("node_modules");
+
+            LinkFolderWithFileHardLink(source_node_modules, source_node_modules, target_node_modules, whiteList);
+                //new List<string>() { "@angular",  "applicationinsights-js", "angular2-busy"}); //"@ngtools", "webpack",
+
+            stopwatch.Stop();
+            Console.WriteLine($"Hard Link Time Consumed: {stopwatch.ElapsedMilliseconds}ms.");
+        }
+
+        static void NPMInstall(string packageManager, DirectoryInfo workingDirectory)
+        {
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            string root = workingDirectory.Root.FullName.Replace(@"\", "");
+
             Console.WriteLine($"Run {packageManager} now:");
             ProcessStartInfo deleteLink = new ProcessStartInfo("cmd.exe")
             {
-                Arguments = $"/c {packageManager}",
+                Arguments = $"/c {root} & cd {workingDirectory.FullName} & {packageManager}",
                 UseShellExecute = false,
                 RedirectStandardError = false,
                 RedirectStandardInput = false,
@@ -188,6 +318,9 @@ namespace npmcache
             };
             Process action = Process.Start(deleteLink);
             action.WaitForExit();
+
+            stopwatch.Stop();
+            Console.WriteLine($"Package Installation Time Consumed: {stopwatch.ElapsedMilliseconds}ms.");
         }
 
     }

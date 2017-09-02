@@ -7,3 +7,12 @@ C:\Users\Jack\documents\visual studio 2017\Projects\npmcache-exe\npmcache-exe\bi
 C:\Users\Jack\documents\visual studio 2017\Projects\npmcache-exe\npmcache-exe\obj\Debug\npmc.exe
 C:\Users\Jack\documents\visual studio 2017\Projects\npmcache-exe\npmcache-exe\obj\Debug\npmc.pdb
 C:\Users\Jack\Documents\Visual Studio 2017\Projects\npmcache-exe\npmcache-exe\obj\Debug\npmcache-exe.csproj.CoreCompileInputs.cache
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\bin\Debug\npmc.exe.config
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\bin\Debug\npmc.exe
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\bin\Debug\npmc.pdb
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\obj\Debug\npmcache-exe.csprojResolveAssemblyReference.cache
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\obj\Debug\npmcache-exe.csproj.CoreCompileInputs.cache
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\obj\Debug\npmc.exe
+C:\Users\Jack\Documents\GitHub\npmcache-exe\npmcache-exe\obj\Debug\npmc.pdb
