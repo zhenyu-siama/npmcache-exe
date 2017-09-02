@@ -27,7 +27,7 @@ With this idea, I found that I can "hard-link-copy" the whole npm folder in abou
 
 But 12 seconds is not fast enough. For something right there in the folder that we don't really want to "copy" at all, I hope it could be done in less than a second.
 
-# The hybrid solution: symbolic links for most and hard links only for those necessary.
+## The hybrid solution: symbolic links for most and hard links only for the necessary.
 
 Since the majority of the node modules do not "RUN" at their physical positions, but are loaded by other "running" processes. So all those "non-running" modules can theoretically be linked with symbolic links. So I tried to maximize the usage of symbolic links and only apply real folder and hard links for tools that must run. I found that I am able to use symbolic link with most of the modules @angular/cli, applicationinsights-js, angular2-busy. As long as I apply hard links on them, the ng build would work.
 
