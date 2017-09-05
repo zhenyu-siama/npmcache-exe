@@ -53,9 +53,24 @@ namespace npmcache
             {
                 var md5 = MD5.Create();
                 var packageJson = File.ReadAllText(filePackageJson.FullName);
-                List<byte> bytes = new List<byte>();
-                bytes.AddRange(Encoding.UTF8.GetBytes(packageJson));
-                var code = md5.ComputeHash(bytes.ToArray()).ToHexString();
+
+                PackageSettings package = null;
+                try
+                {
+                    package = JsonConvert.DeserializeObject<PackageSettings>(packageJson);
+                }
+                 catch(Exception ex)
+                {
+                    Console.Error.WriteLine($"Invalid Package.json file! Please check the package.json.");
+                    throw ex;
+                }
+
+                //List<byte> bytes = new List<byte>();
+                //bytes.AddRange(Encoding.UTF8.GetBytes(packageJson));
+                //var code = md5.ComputeHash(bytes.ToArray()).ToHexString();
+
+                var code = package.ComputeDependencyHashCode();
+
                 Console.WriteLine($"Md5: {code}");
 
                 DirectoryInfo cacheBaseDirectory = new DirectoryInfo(cacheSetting.CacheDirectory);
@@ -88,7 +103,19 @@ namespace npmcache
                     if (File.Exists(cachedJsonFile.FullName))
                     {
                         string cachedJson = File.ReadAllText(cachedJsonFile.FullName);
-                        if (cachedJson != packageJson)
+                        PackageSettings cachedPackage = null;
+                        bool shouldReinstall = false;
+                        try
+                        {
+                            cachedPackage = JsonConvert.DeserializeObject<PackageSettings>(cachedJson);
+                        }
+                        catch(Exception ex)
+                        {
+                            Console.Error.WriteLine($"Cached package.json is not valid.");
+                            shouldReinstall = true;
+                        }
+
+                        if (shouldReinstall)
                         {
                             Console.WriteLine("package-cached.json is different from package.json. current cache will be deleted");
                             cacheDirectory.Delete(true);
@@ -113,7 +140,6 @@ namespace npmcache
                 {
                     if (reinstall && Directory.Exists(cacheDirectory.FullName))
                         cacheDirectory.Delete(true);
-                    cacheDirectory.Create();
                     //store the file
 
                     RunInstall(cacheSetting, cacheDirectory, filePackageJson, cachedJsonFile);
@@ -149,6 +175,9 @@ namespace npmcache
 
         static void RunInstall(CacheSettings cacheSetting, DirectoryInfo cacheDirectory, FileInfo filePackageJson, FileInfo cachedJsonFile)
         {
+
+            if (!Directory.Exists(cacheDirectory.FullName))
+                Directory.CreateDirectory(cacheDirectory.FullName);
 
             //copy the package.json to the cache directory
 
