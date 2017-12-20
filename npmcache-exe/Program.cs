@@ -324,7 +324,7 @@ namespace npmcache
 
             DirectoryInfo source_node_modules = sourceDirectory.AppendRelativeDirectory("node_modules");
 
-            LinkFolderWithFileHardLink(source_node_modules, source_node_modules, target_node_modules, whiteList);
+            LinkFolderWithFileHardLink(source_node_modules, source_node_modules, target_node_modules, null); // whiteList); // use all hard link mode
                 //new List<string>() { "@angular",  "applicationinsights-js", "angular2-busy"}); //"@ngtools", "webpack",
 
             stopwatch.Stop();
